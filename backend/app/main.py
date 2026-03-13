@@ -41,6 +41,11 @@ app.add_middleware(
 rag_engine = RAGEngine()
 
 
+@app.get("/health")
+def health() -> Dict[str, Any]:
+    return {"status": "running"}
+
+
 @app.get("/protocols")
 def get_protocols() -> Dict[str, Any]:
     return {"protocols": list_protocols()}
