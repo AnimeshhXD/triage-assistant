@@ -38,7 +38,18 @@ app.add_middleware(
 )
 
 
-rag_engine = RAGEngine()
+_rag_engine: Optional[RAGEngine] = None
+
+
+def get_rag_engine() -> RAGEngine:
+    """
+    Lazily initialize the RAG engine so the server can start
+    quickly on Render before heavy models are loaded.
+    """
+    global _rag_engine
+    if _rag_engine is None:
+        _rag_engine = RAGEngine()
+    return _rag_engine
 
 
 @app.get("/health")
@@ -57,6 +68,7 @@ def post_triage(req: TriageRequest) -> Dict[str, Any]:
 
     vitals = req.vitals.dict() if req.vitals is not None else {}
 
+    rag_engine = get_rag_engine()
     evidence_chunks, timing_vs = rag_engine.retrieve(req.symptoms, top_k=15)
     vs_ms = timing_vs["vector_search_ms"]
 
