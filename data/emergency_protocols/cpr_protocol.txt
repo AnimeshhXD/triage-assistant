@@ -1,0 +1,17 @@
+CARDIOPULMONARY RESUSCITATION (CPR) PROTOCOL
+
+Indications:
+- Unresponsive patient with no normal breathing and no pulse.
+
+Immediate actions:
+- Call for help and activate emergency response system.
+- Begin high-quality chest compressions at a rate of 100-120 per minute.
+- Provide rescue breaths with appropriate airway adjuncts when available.
+
+Red flags:
+- Prolonged downtime.
+- Known terminal illness or valid do-not-resuscitate order.
+
+Ongoing management:
+- Continue cycles of compressions and ventilations.
+- Apply defibrillator or AED as soon as possible.

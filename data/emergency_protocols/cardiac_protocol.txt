@@ -1,0 +1,22 @@
+CARDIAC EMERGENCY PROTOCOL
+
+Indications:
+- Chest pain
+- Shortness of breath
+- Sweating or diaphoresis
+- Nausea, vomiting
+
+Immediate actions:
+- Place patient on continuous cardiac monitor.
+- Obtain 12-lead ECG within 10 minutes of arrival.
+- Establish IV access and obtain blood work including cardiac enzymes.
+- Administer aspirin 160-325 mg chewed unless contraindicated.
+
+Red flags:
+- Hypotension or signs of shock.
+- New ST-segment elevation on ECG.
+- Severe shortness of breath or pulmonary edema.
+
+Ongoing management:
+- Consider nitroglycerin if blood pressure allows.
+- Prepare for possible percutaneous coronary intervention.
