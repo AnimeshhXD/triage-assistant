@@ -9,7 +9,7 @@
 [![React](https://img.shields.io/badge/React-18+-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
 [![LangChain](https://img.shields.io/badge/LangChain-0.1+-1C3C3C?style=flat-square)](https://langchain.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
-[![Deployed on Fly.io](https://img.shields.io/badge/Deployed%20on-Fly.io-8B5CF6?style=flat-square&logo=flydotio&logoColor=white)](https://fly.io)
+[![Deployed on Fly.io](https://img.shields.io/badge/Deployed%20on-Render-8B5CF6?style=flat-square&logo=flydotio&logoColor=white)](https://render.com)
 
 [Live Demo](#) · [Report Bug](issues) · [Request Feature](issues)
 
