@@ -2,16 +2,13 @@
 
 # 🚨 Real-Time Emergency Response Triage Assistant
 
-**AI-powered patient triage for emergency rooms and disaster relief — decisions in under 500ms.**
+**A rule-based AI triage system for emergency rooms and disaster response — powered by semantic retrieval and pattern-matching clinical logic.**
 
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![React](https://img.shields.io/badge/React-18+-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
-[![LangChain](https://img.shields.io/badge/LangChain-0.1+-1C3C3C?style=flat-square)](https://langchain.com)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
-[![Deployed on Fly.io](https://img.shields.io/badge/Deployed%20on-Render-8B5CF6?style=flat-square&logo=flydotio&logoColor=white)](https://render.com)
-
-[Live Demo](#) · [Report Bug](issues) · [Request Feature](issues)
+[![FastAPI](https://img.shields.io/badge/FastAPI-latest-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
+[![ChromaDB](https://img.shields.io/badge/ChromaDB-in--memory-E76F51?style=flat-square)](https://trychroma.com)
+[![License](https://img.shields.io/badge/License-Not%20Set-lightgrey?style=flat-square)](#license)
 
 </div>
 
@@ -31,11 +28,11 @@
 - [Running the Backend](#-running-the-backend)
 - [Running the Frontend](#-running-the-frontend)
 - [API Endpoints](#-api-endpoints)
-- [Example Request & Response](#-example-request--response)
-- [Performance & Latency Optimization](#-performance--latency-optimization)
-- [Challenges Faced](#-challenges-faced)
+- [Example Request](#-example-request)
+- [Example Response](#-example-response)
+- [Performance Notes](#-performance-notes)
+- [Limitations](#-limitations)
 - [Future Improvements](#-future-improvements)
-- [Hackathon Context](#-hackathon-context)
 - [Contributors](#-contributors)
 - [License](#-license)
 
@@ -43,264 +40,223 @@
 
 ## 📖 Project Description
 
-The **Real-Time Emergency Response Triage Assistant** is an AI system that helps emergency physicians and paramedics make faster, more accurate triage decisions. Given a patient's symptoms and vital signs, the system retrieves relevant medical protocols from a vector database and generates a structured clinical recommendation — triage level, next action, risk percentages, and confidence score — in **under 500 milliseconds**.
+The **Real-Time Emergency Response Triage Assistant** is a full-stack web application that helps emergency responders quickly assess patient severity and determine the most appropriate clinical action.
 
-The system is built on a **Retrieval-Augmented Generation (RAG)** pipeline, enhanced by a proprietary technique called **Intelligent Context Pruning**, which filters irrelevant historical patient data before it reaches the language model. This reduces noise, improves accuracy, and keeps latency at clinical-grade speed even with rich patient histories.
+The backend combines **semantic vector search over emergency protocols** (using ChromaDB and sentence-transformers) with a **rule-based triage engine** to assign a triage level, recommend a next action, and estimate condition-specific risk probabilities. An **Intelligent Context Pruning** step filters retrieved protocol chunks to the most relevant subset before triage reasoning begins.
+
+The frontend is a React/Vite single-page application with a scrollytelling product-style UI, a live triage demo form, and a visual latency meter that displays the backend's reported timings.
+
+> **Honest scope note:** The current backend does not call any external LLM or generative model. All clinical reasoning is performed by deterministic rule matching. LangChain is listed in `requirements.txt` but is not imported or used in any active backend module.
 
 ---
 
 ## 🩺 Problem Statement
 
-Emergency triage is one of the highest-stakes decisions in medicine. A delay of even a few minutes in identifying a heart attack, stroke, or sepsis can permanently change a patient's outcome.
+Emergency triage is a time-critical, high-stakes task. Clinicians must simultaneously assess multiple patients, recall relevant protocols, and make rapid decisions — often with incomplete information and under significant cognitive load.
 
-Current triage tools suffer from three core problems:
+Key pain points this project targets:
 
-1. **Too slow** — Manual chart reviews take 5–15 minutes. Static decision trees cannot reason over complex symptom combinations.
-2. **Too noisy** — Patient EHRs contain years of irrelevant history. Surfacing that noise in an AI context window degrades both speed and accuracy.
-3. **Too rigid** — Rule-based systems cannot handle atypical presentations or multi-condition risk scoring.
-
-Clinicians need a system that gives them the *right signal*, from the *right data*, in *real time*.
+- **Slow protocol lookup** — Manually searching clinical guidelines during an emergency is impractical.
+- **Noisy patient context** — Patient histories contain large volumes of irrelevant information that slow down decision-making.
+- **Inconsistent prioritisation** — Without decision-support tooling, triage severity can vary between clinicians and shifts.
 
 ---
 
 ## 💡 Solution Overview
 
-This system addresses each of those problems directly:
+This system provides structured, automated triage recommendations in three steps:
 
-| Problem | Our Approach |
-|---|---|
-| Slow retrieval | FAISS vector search retrieves only semantically relevant medical protocols |
-| Noisy patient history | Intelligent Context Pruning filters irrelevant records before LLM processing |
-| Rigid decision logic | LangChain RAG pipeline reasons flexibly over symptoms and protocols |
-| High cognitive load | Structured JSON output with confidence scores and ranked next actions |
-| Inaccessible in the field | Voice input via Web Speech API for hands-free symptom entry |
+1. **Retrieve** — Embed the patient's symptom description and query a ChromaDB vector store of emergency protocols to find the most semantically relevant protocol chunks.
+2. **Prune** — Apply Intelligent Context Pruning to rank and trim the retrieved chunks to a manageable token budget, removing low-relevance results.
+3. **Reason** — Run a rule-based triage engine over the symptoms, vitals, and pruned evidence to assign a triage level, next action, risk probabilities, and a confidence score.
 
-The result is a triage recommendation engine that produces outputs like this in under half a second:
-
-```
-Triage Level:  CRITICAL
-Next Action:   Activate cardiac protocol and perform ECG immediately
-Confidence:    90%
-Risk Snapshot: Heart Attack (75%), Stroke (25%)
-```
+The result is a structured JSON response delivered with measured latency that the frontend renders as a triage decision card.
 
 ---
 
 ## ✨ Key Features
 
-- ⚡ **Sub-500ms response time** — Full RAG pipeline from input to structured recommendation
-- 🧠 **Intelligent Context Pruning** — Removes irrelevant medical history before LLM inference
-- 🔍 **Semantic medical protocol search** — FAISS-powered vector search over clinical guidelines
-- 🎙️ **Voice or text input** — Web Speech API for hands-free symptom entry during active care
-- 📊 **Structured risk prediction** — Percentage-based probability scores for multiple diagnoses
-- 🔴 **4-tier triage classification** — Critical / High / Moderate / Low with immediate next actions
-- 📡 **Live latency monitoring** — Real-time dashboard showing per-request response times
-- 🌊 **Scrollytelling UI** — GSAP/Framer Motion animations for contextual data presentation
+These features are all implemented in the current codebase:
+
+- **Single-patient triage via REST API** — Accepts free-text symptoms and optional vitals; returns a structured triage decision.
+- **Voice transcript triage** — A dedicated endpoint accepts speech-to-text strings and routes them through the same pipeline.
+- **Semantic protocol retrieval** — Emergency protocols are chunked, embedded with `all-MiniLM-L6-v2`, and indexed in an in-memory ChromaDB collection at startup.
+- **Intelligent Context Pruning** — Retrieved chunks are ranked by relevance score and trimmed to a configurable count and approximate token budget before triage reasoning.
+- **Rule-based triage engine** — Matches symptom patterns and vital sign thresholds to assign one of four triage levels (`Critical`, `Urgent`, `Moderate`, `Stable`) and compute risk probabilities for four conditions.
+- **Explainable evidence** — Each response includes the matched protocol chunks with highlight terms showing which symptom words drove the retrieval.
+- **Per-request latency metrics** — The API measures and returns vector search time, reasoning time, and total request time.
+- **CORS-enabled API** — Configured to allow all origins for straightforward local and deployed integration.
+- **Scrollytelling frontend** — React/Vite SPA with hero, problem, pruning visualisation, pipeline explainer, live demo, latency meter, and disaster simulation sections.
+- **Frontend disaster simulation** — A multi-patient queue simulation rendered on the frontend; no batch backend endpoint exists.
 
 ---
 
 ## 🏛️ System Architecture
 
-The system follows a 6-stage pipeline from patient input to clinical recommendation:
+The backend processes each triage request through the following pipeline:
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        TRIAGE ASSISTANT PIPELINE                    │
-└─────────────────────────────────────────────────────────────────────┘
+  ┌────────────────────────────────────────────────────────────────────┐
+  │                   TRIAGE REQUEST PIPELINE                          │
+  └────────────────────────────────────────────────────────────────────┘
 
-  ┌──────────────┐     ┌──────────────┐     ┌──────────────────────┐
-  │   INPUT      │     │   BACKEND    │     │   AI ORCHESTRATION   │
-  │              │     │              │     │                      │
-  │ Voice / Text │────▶│   FastAPI    │────▶│   LangChain Chain    │
-  │ Symptoms     │     │   + Uvicorn  │     │   + Prompt Builder   │
-  │ Vital Signs  │     │              │     │                      │
-  └──────────────┘     └──────────────┘     └──────────┬───────────┘
-                                                        │
-                                     ┌──────────────────▼───────────────────┐
-                                     │        INTELLIGENT CONTEXT PRUNING    │
-                                     │  Filters irrelevant patient history   │
-                                     │  Semantic relevance scoring per field │
-                                     └──────────────────┬───────────────────┘
-                                                        │
-                                     ┌──────────────────▼───────────────────┐
-                                     │         FAISS VECTOR SEARCH           │
-                                     │  Sentence Transformers embeddings     │
-                                     │  Retrieves top-K medical protocols    │
-                                     └──────────────────┬───────────────────┘
-                                                        │
-                                     ┌──────────────────▼───────────────────┐
-                                     │           LLM REASONING               │
-                                     │  Generates triage level, next action  │
-                                     │  risk scores, confidence, rationale   │
-                                     └──────────────────┬───────────────────┘
-                                                        │
-  ┌──────────────────────────────────────────────────────▼─────────────────┐
-  │                         STRUCTURED JSON OUTPUT                          │
-  │  { triage_level, next_action, confidence, risk_snapshot, reasoning }    │
-  └─────────────────────────────────────────────────────────────────────────┘
+  HTTP POST /triage
+        │
+        ▼
+  ┌─────────────┐     Pydantic validation
+  │  FastAPI    │◀────(symptoms, vitals, patient_id)
+  │  main.py    │
+  └──────┬──────┘
+         │
+         ▼
+  ┌──────────────────────────────────────┐
+  │         RAGEngine.retrieve()          │
+  │                                      │
+  │  1. embed_query(symptoms)            │  ← sentence-transformers
+  │     all-MiniLM-L6-v2                 │    (cached singleton)
+  │                                      │
+  │  2. ChromaDB.query(top_k=15)         │  ← in-memory collection
+  │     → raw context chunks             │    indexed at startup
+  │                                      │
+  │  3. context_pruning.prune_context()  │  ← rank by similarity score
+  │     → ContextChunk list              │    trim to max count + tokens
+  └──────────────────┬───────────────────┘
+                     │  pruned evidence
+                     ▼
+  ┌──────────────────────────────────────┐
+  │       triage_engine.triage_patient() │
+  │                                      │
+  │  _basic_rules(symptoms, vitals)      │  ← pattern matching
+  │  → triage_level, next_action,        │    + vitals thresholds
+  │    confidence, reasoning,            │
+  │    RiskProfile                       │
+  │                                      │
+  │  explainable_from_evidence(chunks)   │  ← maps chunks → evidence
+  │  → highlight_terms per chunk         │    with matched terms
+  └──────────────────┬───────────────────┘
+                     │
+                     ▼
+  ┌──────────────────────────────────────┐
+  │          JSON Response               │
+  │  triage_level, next_action,          │
+  │  confidence, reasoning, evidence,    │
+  │  risk_profile, latency, patient_id,  │
+  │  pruned_evidence_count               │
+  └──────────────────────────────────────┘
 ```
 
-### Data Flow Summary
+### Startup Sequence
 
-1. **Input Layer** — React frontend captures voice or typed patient data
-2. **API Layer** — FastAPI receives the structured request and validates it via Pydantic
-3. **Pruning Layer** — Intelligent Context Pruning scores and filters the patient history
-4. **Retrieval Layer** — FAISS semantic search retrieves relevant clinical protocols
-5. **Reasoning Layer** — LangChain composes the final prompt and calls the LLM
-6. **Output Layer** — Structured JSON is returned and rendered on the triage dashboard
+When the backend starts, `RAGEngine` runs the following once:
+
+1. `protocols_loader.load_protocol_files()` reads all `*.txt` files from `data/emergency_protocols/`.
+2. Each protocol is split into line-based chunks with metadata (protocol name, chunk index, start line).
+3. All chunks are embedded via `embed_texts()` and added to a ChromaDB in-memory collection named `"emergency_protocols"`.
+
+This collection persists only for the lifetime of the process. There is no on-disk or remote vector store configured.
 
 ---
 
 ## ✂️ Intelligent Context Pruning
 
-### The Problem with Raw Patient History
+After ChromaDB returns the top-K matching protocol chunks, a custom pruning step in `app/context_pruning.py` refines the result set before it reaches the triage engine.
 
-A typical patient EHR contains years of medical records — childhood vaccinations, old fractures, dental history, unrelated chronic conditions. When this full history is fed into an LLM's context window, it creates two problems:
+**What it does:**
 
-- **Latency** — More tokens = slower inference
-- **Accuracy** — The model attends to irrelevant signals, diluting the quality of its reasoning
+1. Attaches the similarity score (derived from ChromaDB distances) to each retrieved chunk.
+2. Ranks chunks by their relevance score in descending order.
+3. Filters the ranked list to a maximum chunk count.
+4. Applies an approximate token budget — chunks are included until the estimated token count would be exceeded.
 
-### How Pruning Works
+**What it does not do (current implementation):**
 
-Intelligent Context Pruning scores each item in the patient's history for **semantic relevance** to the current presenting symptoms before any LLM call is made.
+- It does not re-embed or re-score chunks against the query at pruning time.
+- It does not use cosine similarity computed independently; it uses the scores already returned by ChromaDB.
 
-```python
-# Simplified pruning logic
-def prune_context(patient_history: list[dict], current_symptoms: str) -> list[dict]:
-    symptom_embedding = encoder.encode(current_symptoms)
-    scored = []
-
-    for record in patient_history:
-        record_embedding = encoder.encode(record["description"])
-        relevance_score = cosine_similarity(symptom_embedding, record_embedding)
-        scored.append((relevance_score, record))
-
-    # Keep only records above the relevance threshold
-    pruned = [r for score, r in scored if score >= RELEVANCE_THRESHOLD]
-    return sorted(pruned, key=lambda r: r["date"], reverse=True)
-```
-
-### Before vs. After Pruning
-
-**Patient presenting with:** *Chest pain, shortness of breath, diaphoresis*
-
-| Status | Record | Relevance |
-|--------|--------|-----------|
-| ✅ Kept | Hypertension diagnosis (2021) | High — cardiovascular risk factor |
-| ✅ Kept | Elevated cholesterol (2022) | High — cardiac comorbidity |
-| ✅ Kept | Prior ECG anomaly (2023) | High — directly relevant |
-| ❌ Removed | Childhood eczema (1998) | None |
-| ❌ Removed | Broken arm, right radius (2005) | None |
-| ❌ Removed | Dental extraction (2019) | None |
-| ❌ Removed | Routine eye checkup (2020) | None |
-
-**Result:** Token count reduced by ~70%. The LLM receives only the 3 records that matter.
-
-### Why This Matters
-
-- **Speed** — Fewer tokens = faster LLM inference = lower end-to-end latency
-- **Accuracy** — The model focuses its attention on clinically relevant context
-- **Scalability** — Works equally well for patients with 5 records or 500
+The practical effect is that only the highest-scoring, most semantically relevant protocol segments are passed to the rule-based engine, reducing the noise in the evidence payload and keeping the `pruned_evidence_count` in the response low and focused.
 
 ---
 
 ## 🛠️ Tech Stack
 
-### Frontend
-
-| Technology | Purpose |
-|---|---|
-| React 18 | UI component framework |
-| Vite | Fast bundler and dev server |
-| Tailwind CSS | Utility-first styling |
-| Framer Motion | Component-level animations |
-| GSAP | Scrollytelling and timeline animations |
-| Web Speech API | Browser-native voice input |
-
 ### Backend
 
-| Technology | Purpose |
-|---|---|
-| Python 3.11+ | Core backend language |
-| FastAPI | High-performance async REST API |
-| Uvicorn | ASGI server for FastAPI |
-| Pydantic | Request/response validation and schema definition |
+| Component | Technology | Notes |
+|---|---|---|
+| Web framework | FastAPI | Async, Pydantic-validated |
+| ASGI server | Uvicorn | Used in development and production via `start.sh` |
+| Data validation | Pydantic | Request and response models |
+| Vector store | ChromaDB | In-memory only; no persistence |
+| Embedding model | `sentence-transformers/all-MiniLM-L6-v2` | Cached singleton via `app/embeddings.py` |
+| Numerical ops | NumPy | Similarity score computation |
+| LLM / generative AI | **Not implemented** | LangChain is in `requirements.txt` but not used |
 
-### AI / Retrieval
+### Frontend
 
-| Technology | Purpose |
+| Component | Technology |
 |---|---|
-| LangChain | LLM orchestration and RAG chain management |
-| Sentence Transformers | Generating dense embeddings for semantic search |
-| FAISS | High-speed vector similarity search |
-| RAG Pipeline | Grounding LLM outputs in verified medical protocols |
+| UI framework | React 18 |
+| Build tool | Vite |
+| Styling | Tailwind CSS |
+| Component animation | Framer Motion |
+| Scroll animations | GSAP + ScrollTrigger |
 
 ### Deployment
 
-| Technology | Purpose |
+| Target | Platform |
 |---|---|
-|Render| Backend deployment with global edge routing |
-| Docker | Containerized backend for consistent environments |
+| Backend | Render (Web Service) — configured via `backend/start.sh` |
+| Frontend | Any static host (Render Static Site, Netlify, Vercel, etc.) |
 
 ---
 
 ## 📁 Project Structure
 
 ```
-emergency-triage-assistant/
+triage-assistant/
 │
-├── frontend/                          # React application
-│   ├── public/
-│   │   └── assets/                    # Static assets
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── TriageDashboard.jsx    # Main triage interface
-│   │   │   ├── PatientInputForm.jsx   # Symptom + vitals input
-│   │   │   ├── VoiceInput.jsx         # Web Speech API integration
-│   │   │   ├── TriageResult.jsx       # Recommendation display card
-│   │   │   ├── RiskSnapshot.jsx       # Risk percentage chart
-│   │   │   ├── LatencyMonitor.jsx     # Live response time display
-│   │   │   └── DisasterMode.jsx       # Multi-patient queue view
-│   │   ├── hooks/
-│   │   │   ├── useTriageQuery.js      # API query hook
-│   │   │   └── useSpeechInput.js      # Voice recognition hook
-│   │   ├── utils/
-│   │   │   └── formatters.js          # Output formatting helpers
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   ├── index.html
-│   ├── tailwind.config.js
-│   ├── vite.config.js
-│   └── package.json
+├── backend/
+│   ├── README.md
+│   ├── requirements.txt           # Python dependencies
+│   ├── start.sh                   # Render deployment start command
+│   └── app/
+│       ├── main.py                # FastAPI app, CORS, endpoints
+│       ├── rag_pipeline.py        # RAGEngine: retrieval + pruning orchestration
+│       ├── embeddings.py          # Sentence-transformer singleton + embed helpers
+│       ├── context_pruning.py     # Chunk ranking and token-budget trimming
+│       ├── triage_engine.py       # Rule-based triage logic + risk scoring
+│       ├── protocols_loader.py    # Reads .txt protocol files from disk
+│       └── requirements.txt       # Secondary requirements file (within app/)
 │
-├── backend/                           # FastAPI application
-│   ├── app/
-│   │   ├── main.py                    # FastAPI app entry point
-│   │   ├── routers/
-│   │   │   └── triage.py              # Triage API endpoints
-│   │   ├── services/
-│   │   │   ├── rag_pipeline.py        # LangChain RAG orchestration
-│   │   │   ├── context_pruner.py      # Intelligent Context Pruning
-│   │   │   ├── vector_search.py       # FAISS retrieval service
-│   │   │   └── triage_engine.py       # Core triage logic
-│   │   ├── models/
-│   │   │   ├── request_models.py      # Pydantic input schemas
-│   │   │   └── response_models.py     # Pydantic output schemas
-│   │   └── data/
-│   │       ├── medical_protocols/     # Source clinical guidelines
-│   │       └── faiss_index/           # Pre-built vector index
-│   ├── tests/
-│   │   ├── test_triage.py
-│   │   ├── test_context_pruner.py
-│   │   └── test_vector_search.py
-│   ├── requirements.txt
-│   ├── Dockerfile
-│   └── fly.toml                       # Fly.io deployment config
+├── data/
+│   └── emergency_protocols/       # Protocol corpus (loaded at startup)
+│       ├── cardiac_protocol.txt
+│       ├── stroke_protocol.txt
+│       ├── trauma_protocol.txt
+│       ├── burn_protocol.txt
+│       └── cpr_protocol.txt
 │
-├── .env.example                       # Environment variable template
-├── .gitignore
-├── docker-compose.yml
-└── README.md
+└── frontend/
+    ├── index.html
+    ├── package.json
+    ├── vite.config.mts
+    ├── tailwind.config.cjs
+    ├── postcss.config.cjs
+    └── src/
+        ├── main.jsx
+        ├── App.jsx
+        ├── styles/
+        │   └── global.css
+        ├── pages/
+        │   └── Home.jsx           # Composes all sections
+        └── components/
+            ├── HeroSection.jsx
+            ├── ProblemSection.jsx
+            ├── PruningVisualization.jsx
+            ├── PipelineSection.jsx
+            ├── TriageDemo.jsx         # POSTs to /triage, renders result
+            ├── LatencyMeter.jsx       # Displays latency from backend response
+            └── DisasterSimulation.jsx # Frontend-only multi-patient simulation
 ```
 
 ---
@@ -309,62 +265,28 @@ emergency-triage-assistant/
 
 ### Prerequisites
 
-Ensure the following are installed on your machine:
+- Python 3.11+
+- Node.js 18+
+- npm
 
-- **Python** 3.11+
-- **Node.js** 18+
-- **npm** or **yarn**
-- **Git**
-
-### Clone the Repository
+### Clone the repository
 
 ```bash
 git clone https://github.com/your-username/emergency-triage-assistant.git
 cd emergency-triage-assistant
 ```
 
-### Environment Variables
-
-Copy the example environment file and populate it with your values:
-
-```bash
-cp .env.example .env
-```
-
-```env
-# .env
-
-# LLM Provider
-OPENAI_API_KEY=your_openai_api_key_here
-
-# Backend
-BACKEND_HOST=0.0.0.0
-BACKEND_PORT=8000
-ENVIRONMENT=development
-
-# Context Pruning
-RELEVANCE_THRESHOLD=0.45
-MAX_HISTORY_TOKENS=1200
-
-# FAISS Index
-FAISS_INDEX_PATH=./app/data/faiss_index
-EMBEDDING_MODEL=all-MiniLM-L6-v2
-
-# Frontend
-VITE_API_BASE_URL=http://localhost:8000
-```
-
 ---
 
 ## 🖥️ Running the Backend
 
-### 1. Create a virtual environment
+### 1. Create and activate a virtual environment
 
 ```bash
 cd backend
-python -m venv venv
-source venv/bin/activate        # macOS/Linux
-venv\Scripts\activate           # Windows
+python -m venv .venv
+source .venv/bin/activate      # macOS/Linux
+.venv\Scripts\activate         # Windows
 ```
 
 ### 2. Install dependencies
@@ -373,30 +295,25 @@ venv\Scripts\activate           # Windows
 pip install -r requirements.txt
 ```
 
-### 3. Build the FAISS vector index
+> **Note:** The first run will download the `all-MiniLM-L6-v2` model from Hugging Face (~90 MB). Subsequent starts use the local cache.
 
-This step processes the medical protocol documents and builds the searchable vector index. Run this once before first launch.
+### 3. Verify protocol files are in place
 
-```bash
-python -m app.services.vector_search --build-index
-```
+The backend expects protocol `.txt` files at `../data/emergency_protocols/` relative to the `backend/` directory. The five protocol files (`cardiac_protocol.txt`, `stroke_protocol.txt`, `trauma_protocol.txt`, `burn_protocol.txt`, `cpr_protocol.txt`) are included in the repository and require no additional setup.
 
-Expected output:
-```
-Loading embedding model: all-MiniLM-L6-v2
-Processing 142 medical protocol documents...
-Index built successfully. Saved to ./app/data/faiss_index
-```
-
-### 4. Start the API server
+### 4. Start the development server
 
 ```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn app.main:app --reload
 ```
 
 The API will be available at `http://localhost:8000`.
 
-Interactive API docs (Swagger UI): `http://localhost:8000/docs`
+- **Health check:** `GET http://localhost:8000/health`
+- **Interactive API docs (Swagger UI):** `http://localhost:8000/docs`
+- **Alternative docs (ReDoc):** `http://localhost:8000/redoc`
+
+> On startup you will see the RAGEngine indexing all protocol chunks into the in-memory ChromaDB collection. This takes a few seconds on first run.
 
 ---
 
@@ -415,182 +332,199 @@ npm install
 npm run dev
 ```
 
-The frontend will be available at `http://localhost:5173`.
+Vite will start at `http://localhost:5173` by default.
 
-### 3. Build for production
+> The `TriageDemo` component is hard-coded to call `http://localhost:8000/triage`. Ensure the backend is running before submitting a triage request from the UI.
+
+### 3. Production build
 
 ```bash
 npm run build
-npm run preview      # Preview the production build locally
 ```
+
+The compiled output is written to `frontend/dist/`. Deploy this folder to any static hosting provider.
+
+> **For production deployments:** Update the API base URL in `TriageDemo.jsx` from `http://localhost:8000/triage` to your deployed backend endpoint before building.
 
 ---
 
 ## 📡 API Endpoints
 
-### Base URL: `http://localhost:8000`
-| Method | Endpoint            | Purpose                                                      |
-| ------ | ------------------- | ------------------------------------------------------------ |
-| GET    | `/health`           | Returns service status for monitoring and deployment checks  |
-| GET    | `/protocols`        | Lists indexed emergency medical protocols used by the system |
-| POST   | `/triage`           | Analyzes symptoms and vitals to produce a triage decision    |
-| POST   | `/voice-transcript` | Processes voice symptom input into structured text           |
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/health` | Health check — confirms the backend is running |
+| `GET` | `/protocols` | Returns a list of all indexed protocol names |
+| `POST` | `/triage` | Triage a patient from free-text symptoms + optional vitals |
+| `POST` | `/voice-transcript` | Triage from a speech transcript string + optional vitals |
 
+### Request Schemas
+
+**`Vitals` object (optional on all triage endpoints)**
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `heart_rate` | float | No | Heart rate in bpm |
+| `blood_pressure` | string | No | e.g. `"150/90"` |
+| `oxygen` | float | No | Oxygen saturation percentage |
+
+**`POST /triage` — `TriageRequest`**
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `patient_id` | string | No | Optional identifier echoed back in the response |
+| `symptoms` | string | **Yes** | Free-text symptom description |
+| `vitals` | `Vitals` | No | Optional vital signs object |
+
+**`POST /voice-transcript` — `VoiceTranscriptRequest`**
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `transcript` | string | **Yes** | Speech-to-text transcript used as the symptom input |
+| `vitals` | `Vitals` | No | Optional vital signs object |
+
+### Response Schema (both triage endpoints)
+
+| Field | Type | Description |
+|---|---|---|
+| `triage_level` | string | `"Critical"`, `"Urgent"`, `"Moderate"`, or `"Stable"` |
+| `next_action` | string | Recommended immediate clinical action |
+| `confidence` | float | Rule engine confidence score (0.0–1.0) |
+| `reasoning` | string | Concatenated text explaining the decision |
+| `evidence` | array | Pruned protocol chunks that matched — see below |
+| `risk_profile` | object | Estimated probabilities for four conditions — see below |
+| `latency` | object | Measured timings — see below |
+| `patient_id` | string \| null | Echo of the request `patient_id` |
+| `pruned_evidence_count` | int | Number of evidence chunks after pruning |
+
+**`evidence` item fields**
+
+| Field | Type | Description |
+|---|---|---|
+| `protocol` | string | Protocol name (e.g. `"cardiac_protocol"`) |
+| `score` | float | Combined relevance score from retrieval + pruning |
+| `text` | string | The protocol chunk text |
+| `highlight_terms` | array of strings | Symptom words that matched this chunk |
+| `metadata` | object | `protocol`, `chunk_index`, `start_line` |
+
+**`risk_profile` fields**
+
+| Field | Type | Description |
+|---|---|---|
+| `heart_attack` | float | Estimated probability (0.0–1.0) |
+| `stroke` | float | Estimated probability (0.0–1.0) |
+| `internal_bleeding` | float | Estimated probability (0.0–1.0) |
+| `shock` | float | Estimated probability (0.0–1.0) |
+
+**`latency` fields**
+
+| Field | Type | Description |
+|---|---|---|
+| `vector_search_ms` | float | Time for ChromaDB retrieval + context pruning |
+| `reasoning_ms` | float | Time for rule-based triage computation |
+| `total_ms` | float | Total measured time within the endpoint handler |
 
 ---
 
-## 📨 Example Request & Response
+## 📨 Example Request
 
-### POST `/triage`
-
-**Request Body:**
+**`POST /triage`**
 
 ```json
 {
-  "patient": {
-    "age": 58,
-    "sex": "male",
-    "symptoms": "Chest pain radiating to the left arm, shortness of breath, diaphoresis for approximately 20 minutes",
-    "vitals": {
-      "heart_rate": 112,
-      "blood_pressure": "160/95",
-      "spo2": 94,
-      "temperature": 37.2,
-      "respiratory_rate": 22
-    },
-    "medical_history": [
-      { "date": "2021-03-10", "description": "Diagnosed with hypertension, started on lisinopril" },
-      { "date": "2022-08-01", "description": "Elevated LDL cholesterol, prescribed statin" },
-      { "date": "2023-01-15", "description": "Routine ECG showed mild ST depression" },
-      { "date": "1998-06-20", "description": "Childhood eczema, resolved" },
-      { "date": "2005-11-03", "description": "Fractured right radius, cast applied" },
-      { "date": "2019-04-12", "description": "Dental extraction, lower molar" },
-      { "date": "2020-09-08", "description": "Routine eye examination, mild myopia" }
-    ]
+  "patient_id": "12345",
+  "symptoms": "Patient has chest pain, sweating, shortness of breath.",
+  "vitals": {
+    "heart_rate": 110,
+    "blood_pressure": "150/90",
+    "oxygen": 92
   }
 }
 ```
 
-**Response:**
+---
+
+## 📬 Example Response
 
 ```json
 {
-  "triage_level": "CRITICAL",
-  "next_action": "Activate cardiac protocol immediately. Perform 12-lead ECG, administer aspirin 300mg (chewed), establish IV access, and prepare for potential PCI transfer.",
-  "confidence": 0.90,
-  "risk_snapshot": {
-    "myocardial_infarction": 0.75,
-    "stroke": 0.25,
-    "pulmonary_embolism": 0.12,
-    "aortic_dissection": 0.08
-  },
-  "reasoning": "58-year-old male presenting with classic STEMI triad: substernal chest pain radiating to left arm, diaphoresis, and dyspnea. BP 160/95 and HR 112 indicate haemodynamic stress. History of hypertension, hyperlipidaemia, and prior ECG anomaly significantly elevates cardiac risk. Context Pruning retained 3 of 7 history records as clinically relevant.",
-  "protocols_retrieved": [
-    "AHA STEMI Management Protocol (2023)",
-    "Chest Pain Differential Diagnosis Guidelines",
-    "Emergency Cardiac Triage Pathway"
+  "triage_level": "Critical",
+  "next_action": "Activate cardiac protocol, perform ECG immediately, give aspirin if not contraindicated, and prepare for possible PCI.",
+  "confidence": 0.9,
+  "reasoning": "Chest pain with dyspnea and diaphoresis strongly suggests acute coronary syndrome.",
+  "evidence": [
+    {
+      "protocol": "cardiac_protocol",
+      "score": 0.87,
+      "text": "CARDIAC EMERGENCY PROTOCOL\n\nIndications:\n- Chest pain\n- Shortness of breath\n- Sweating or diaphoresis\n...",
+      "highlight_terms": ["chest", "pain", "shortness", "breath"],
+      "metadata": {
+        "protocol": "cardiac_protocol",
+        "chunk_index": 0,
+        "start_line": 0
+      }
+    }
   ],
-  "context_pruning": {
-    "history_records_total": 7,
-    "history_records_retained": 3,
-    "tokens_before_pruning": 640,
-    "tokens_after_pruning": 190,
-    "token_reduction_percent": 70.3
+  "risk_profile": {
+    "heart_attack": 0.95,
+    "stroke": 0.1,
+    "internal_bleeding": 0.05,
+    "shock": 0.25
   },
-  "latency_ms": 39,
-  "session_id": "triage-a3f9b21c"
+  "latency": {
+    "vector_search_ms": 120.3,
+    "reasoning_ms": 2.5,
+    "total_ms": 145.8
+  },
+  "patient_id": "12345",
+  "pruned_evidence_count": 5
 }
 ```
 
+> Exact field values will vary based on runtime, hardware, symptom input, and the current protocol corpus. The above is illustrative of the response schema.
+
 ---
 
-## ⚡ Performance & Latency Optimization
+## ⚡ Performance Notes
 
-Achieving sub-500ms end-to-end latency on a full RAG pipeline required several deliberate optimizations:
+The following observations are based on what is measurable from the current codebase, not benchmarked guarantees:
 
-### 1. Intelligent Context Pruning (Primary Optimization)
+- **Rule-based reasoning is fast** — The `triage_engine` operates on pure Python pattern matching. The `reasoning_ms` field in the example response above (2.5ms) is representative of how lightweight this step is.
+- **Vector search dominates latency** — ChromaDB query time and the subsequent pruning step account for the majority of `total_ms`. This scales with the size of the protocol corpus.
+- **Embedding model load time** — `all-MiniLM-L6-v2` is loaded once at startup and cached as a singleton. Per-request embedding latency is typically low, but the initial server startup is slower as a result.
+- **In-memory store** — All protocol vectors live in RAM. There is no disk I/O at query time, which keeps retrieval fast for the current corpus size (5 protocol files).
+- **No LLM call** — Because there is no generative model in the pipeline, there is no network round-trip to an external API. This is the primary reason the system can respond in under 500ms on typical hardware.
 
-The single biggest latency reduction. By cutting irrelevant patient history before the LLM call, we reduced average token input by **~70%**, which directly reduces prompt processing time.
+---
 
-### 2. Pre-built FAISS Index
+## ⚠️ Limitations
 
-The vector index is built offline during setup and loaded into memory at server startup. Vector search at inference time is purely a lookup operation — no re-embedding of the protocol corpus at runtime.
+These are confirmed gaps in the current implementation:
 
-### 3. Sentence Transformer Model Selection
-
-We use `all-MiniLM-L6-v2`, a 22M parameter model optimized for fast, high-quality sentence embeddings. It runs on CPU in under 5ms per query.
-
-### 4. Async FastAPI + Uvicorn
-
-All I/O-bound operations (embedding, retrieval, LLM calls) are handled asynchronously, allowing concurrent requests without blocking.
-
-### 5. Top-K Protocol Retrieval
-
-We retrieve only the **top 3 most semantically relevant** medical protocols rather than the full corpus, minimizing the context passed to the LLM.
-
-### Latency Benchmark
-
-| Metric | Value |
+| Area | Status |
 |---|---|
-| Best observed response time | 39ms |
-| Typical average response time | ~200ms |
-| Maximum guaranteed latency | < 500ms |
-| Token reduction via pruning | ~70% |
-| Protocols indexed | 142 |
-| FAISS search time (p99) | < 5ms |
-
----
-
-## 🧱 Challenges Faced
-
-### 1. Balancing Pruning Aggressiveness
-Setting the right relevance threshold for context pruning was non-trivial. Too aggressive, and meaningful comorbidities get dropped. Too lenient, and irrelevant records slip through. We validated thresholds against a set of synthetic patient cases with known expected outputs.
-
-### 2. Structured Output Reliability
-Getting the LLM to consistently return well-formed JSON with valid triage levels and numeric confidence scores required careful prompt engineering and output validation with Pydantic. We added a retry mechanism for malformed responses.
-
-### 3. Latency Under Load
-Early versions of the system spiked above 500ms under concurrent requests because the embedding model was being re-initialized per request. Switching to a singleton model instance loaded at startup resolved this.
-
-### 4. Medical Protocol Coverage
-The quality of RAG retrieval depends entirely on the quality and breadth of the protocol corpus. Gaps in coverage lead to vague or over-hedged recommendations. We curated 142 protocols from publicly available clinical guidelines to provide broad coverage.
-
-### 5. Voice Input Reliability
-Browser-based speech recognition via the Web Speech API has inconsistent accuracy for medical terminology. We added a medical term post-processor that maps common mishearings (e.g. "die-a-pho-resis") to correct terms before sending to the backend.
+| LLM / generative reasoning | **Not implemented.** All triage logic is rule-based. LangChain is in `requirements.txt` but not used. |
+| Batch / disaster-mode endpoint | **Not implemented.** The disaster simulation is frontend-only. |
+| Persistent vector store | **Not implemented.** ChromaDB runs in-memory and is rebuilt on every server restart. |
+| Authentication & authorisation | **Not implemented.** The API is fully open. |
+| Session or patient state | **Not implemented.** Each request is stateless. |
+| Environment variable configuration | **Not implemented.** Paths, model names, and thresholds are not parameterised via `.env`. |
+| Response model validation | **Partial.** Request models are Pydantic-validated; the response is returned as a plain dict without a declared Pydantic response model. |
+| HIPAA / clinical compliance | **Not applicable in current form.** This is a hackathon prototype, not a certified clinical tool. |
 
 ---
 
 ## 🔭 Future Improvements
 
-### Near-Term (v2.0)
-
-- [ ] **EHR Integration** — HL7 FHIR-compliant API adapter for direct hospital system connection
-- [ ] **Pediatric Module** — Age-adjusted vital sign thresholds and pediatric-specific protocol corpus
-- [ ] **Multi-language Support** — Multilingual embeddings and voice input for global deployment
-- [ ] **HIPAA-compliant deployment** — Encrypted data at rest, audit logging, and access controls
-- [ ] **Offline mode** — Local LLM inference for field use without internet connectivity
-
-### Long-Term (v3.0)
-
-- [ ] **Wearable Integration** — Real-time vitals streaming from IoT medical devices
-- [ ] **Continuous Learning** — Anonymized outcome feedback loop to refine triage recommendations over time
-- [ ] **Specialist Modules** — Dedicated sub-agents for cardiology, neurology, trauma, and toxicology
-- [ ] **Telemedicine Bridge** — Escalation pathway to connect field responders with remote specialists
-- [ ] **Clinical Validation** — Partnership with emergency departments for prospective clinical trial
-
----
-
-## 🏆 Hackathon Context
-
-This project was built as part of **[Hackathon Name] 2025**.
-
-**Theme:** AI for Social Good / Healthcare Innovation
-
-**Track:** Healthcare / Emergency Response
-
-The core innovation — **Intelligent Context Pruning** — was conceived during the hackathon as a direct solution to a real bottleneck observed in AI-augmented clinical decision support systems: LLMs receiving bloated, irrelevant context that degrades both speed and accuracy. The technique is generalizable beyond emergency triage to any RAG system where input context contains a mix of relevant and irrelevant data.
-
-> **Built in [X] hours by a team of [N] engineers.**
+- **LLM integration** — Replace or augment the rule-based engine with a generative model (e.g. via LangChain, which is already in the dependency list) to handle atypical presentations and produce more nuanced reasoning.
+- **Persistent vector store** — Configure ChromaDB with a persistent directory, or migrate to a managed vector database, so the index survives server restarts.
+- **Batch triage endpoint** — Implement a `POST /triage/batch` endpoint to support the disaster-mode multi-patient scenario that currently exists only in the frontend.
+- **Environment variable configuration** — Parameterise model names, data paths, pruning thresholds, and CORS settings via environment variables and a `.env` file.
+- **Pydantic response models** — Define explicit Pydantic response schemas to enforce output contracts and improve API documentation.
+- **Expanded protocol corpus** — Add paediatric, obstetric, toxicology, and mental health crisis protocols to improve coverage.
+- **Voice input in browser** — Wire the Web Speech API directly in the frontend and route the transcript to `/voice-transcript`, enabling a fully voice-driven demo.
+- **Authentication layer** — Add API key or OAuth2 authentication before any non-local deployment.
+- **Test coverage** — Add unit tests for `context_pruning.py`, `triage_engine.py`, and the API endpoints.
+- **Production deployment hardening** — Add request rate limiting, logging, error monitoring, and a health-check endpoint that verifies the vector index is loaded.
 
 ---
 
@@ -598,24 +532,22 @@ The core innovation — **Intelligent Context Pruning** — was conceived during
 
 | Name | Role | GitHub |
 |---|---|---|
-| [Animesh] | Full-Stack & AI Lead | [@AnimeshhXD](https://github.com/AnimeshhXD) |
-| [Utkarsh] | Backend & RAG Pipeline | [@Utkarsh](https://github.com/utkarpatil) |
-| [Vedant] | Frontend & UI/UX | [@Veant](https://github.com/LunaticPoop) |
+| Animesh | Full-Stack & AI Lead | [@AnimeshhXD](https://github.com/AnimeshhXD) |
+| Utkarsh | Backend & RAG Pipeline | [@Utkarsh](https://github.com/utkarpatil) |
+| Vedant | Frontend & UI/UX | [@Veant](https://github.com/LunaticPoop) |
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License**.
+**No license file is currently present in this repository.**
 
-See the [LICENSE](LICENSE) file for full terms.
+Until a `LICENSE` file is added, standard copyright law applies — the code is not freely reusable, modifiable, or distributable by others. If you intend this project to be open source, add an appropriate license (e.g. [MIT](https://choosealicense.com/licenses/mit/), [Apache 2.0](https://choosealicense.com/licenses/apache-2.0/)) and update this section.
 
 ---
 
 <div align="center">
 
-**Built with urgency, for urgency.**
-
-*Every second saved in triage is a life that has a better chance of survival.*
+*Built as a hackathon prototype. Not intended for clinical use.*
 
 </div>
