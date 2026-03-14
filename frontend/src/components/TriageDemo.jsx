@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { API_BASE } from "../config/api";
 
 const initialForm = {
   symptoms: "Patient has chest pain, sweating, shortness of breath.",
@@ -32,7 +33,7 @@ const TriageDemo = ({ onLatency }) => {
           oxygen: Number(form.oxygen) || undefined
         }
       };
-      const res = await fetch("http://localhost:8000/triage", {
+      const res = await fetch(`${API_BASE}/triage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -132,18 +133,25 @@ const TriageDemo = ({ onLatency }) => {
                 />
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <button
-                type="submit"
-                disabled={loading}
-                className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-accent text-sm font-semibold text-background disabled:opacity-60"
-              >
-                {loading ? "Running..." : "Run triage"}
-              </button>
-              {error && (
-                <span className="text-xs text-danger">
-                  {error}
-                </span>
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-accent text-sm font-semibold text-background disabled:opacity-60"
+                >
+                  {loading ? "Running triage…" : "Run triage"}
+                </button>
+                {error && (
+                  <span className="text-xs text-danger">
+                    {error}
+                  </span>
+                )}
+              </div>
+              {loading && (
+                <p className="text-xs text-textMuted">
+                  First request may take 20–40 seconds (Render free tier).
+                </p>
               )}
             </div>
           </form>
