@@ -542,7 +542,6 @@ These are confirmed gaps in the current implementation:
 
 **No license file is currently present in this repository.**
 
-Until a `LICENSE` file is added, standard copyright law applies — the code is not freely reusable, modifiable, or distributable by others. If you intend this project to be open source, add an appropriate license (e.g. [MIT](https://choosealicense.com/licenses/mit/), [Apache 2.0](https://choosealicense.com/licenses/apache-2.0/)) and update this section.
 
 ---
 
