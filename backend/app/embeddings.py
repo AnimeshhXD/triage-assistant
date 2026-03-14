@@ -2,15 +2,16 @@ from functools import lru_cache
 from typing import List
 
 import numpy as np
-from sentence_transformers import SentenceTransformer
 
 
 @lru_cache(maxsize=1)
-def _load_model() -> SentenceTransformer:
+def _load_model():
     """
     Load a lightweight MiniLM model once and cache it.
-    This is small and fast enough for sub-500ms latency on short inputs.
+    Heavy ML libs (sentence_transformers, torch) load only when this runs,
+    so FastAPI can bind to port before any model is loaded.
     """
+    from sentence_transformers import SentenceTransformer
     return SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
 
@@ -30,4 +31,3 @@ def embed_texts(texts: List[str]) -> List[List[float]]:
 
 def embed_query(text: str) -> List[float]:
     return embed_texts([text])[0]
-
